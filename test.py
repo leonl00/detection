@@ -1,2 +1,2 @@
 print("Hallo GitHub")
-print("Moin")
+print("Moinn")
