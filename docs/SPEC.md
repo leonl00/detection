@@ -152,7 +152,7 @@ Alle Module bekommen Typangaben, deutsche oder englische Docstrings und mindeste
 
 Die API hat zwei Endpunkte: `POST /predict` nimmt eine Bilddatei entgegen und gibt dieselbe JSON-Struktur zurueck wie `predict.py`, `GET /health` meldet, ob der Dienst laeuft. Die Antwortform wird ueber Pydantic-Modelle festgelegt. Ungueltige Eingaben, also falscher Dateityp, leere Datei oder zu grosses Bild, ergeben saubere HTTP-Fehler statt Abstuerze. Das Modell wird einmal beim Start geladen, nicht pro Anfrage. Getestet wird mit dem FastAPI-TestClient, je ein Test fuer den Erfolgsfall und fuer jeden Fehlerfall. Dazu ein Dockerfile, damit der Dienst mit einem Befehl startet.
 
-## Methodische Anforderungen
+## Methodische Anforderung
 
 Diese Punkte sind der inhaltliche Kern des Projekts und wichtiger als jede Modellkennzahl.
 
