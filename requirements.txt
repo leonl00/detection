@@ -8,6 +8,9 @@ roboflow==1.6.1
 pillow==12.3.0
 matplotlib==3.11.2
 
+# Finding near-identical images (perceptual hashes)
+imagehash==4.3.2
+
 # Configuration and secrets
 pyyaml==6.0.3
 python-dotenv==1.2.4
