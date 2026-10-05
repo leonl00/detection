@@ -4,6 +4,10 @@
 # Data download
 roboflow==1.6.1
 
+# Data checks: reading image sizes and drawing charts
+pillow==12.3.0
+matplotlib==3.11.2
+
 # Configuration and secrets
 pyyaml==6.0.3
 python-dotenv==1.2.4
