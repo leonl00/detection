@@ -1,0 +1,11 @@
+# Settings for the Ruff linter and formatter.
+# Run with:  ruff check .   and   ruff format .
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# E/W: style errors, F: real bugs (unused imports, undefined names),
+# I: sorted imports, UP: modern Python syntax, B: common pitfalls
+select = ["E", "W", "F", "I", "UP", "B"]
