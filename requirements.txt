@@ -1,6 +1,9 @@
 # Direct dependencies only. New packages are added in the stage that needs them.
 # Versions are pinned so that every run uses exactly the same packages.
 
+# Data download
+roboflow==1.6.1
+
 # Configuration and secrets
 pyyaml==6.0.3
 python-dotenv==1.2.4
@@ -8,3 +11,6 @@ python-dotenv==1.2.4
 # Development tools
 pytest==9.1.1
 ruff==0.16.10
+
+# This project itself, installed from src/ in editable mode
+-e .
