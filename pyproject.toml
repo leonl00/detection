@@ -1,3 +1,19 @@
+# Project metadata. "pip install -e ." installs the package "detection" from src/,
+# so that "import detection" and "python -m detection.<module>" work everywhere.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "detection"
+version = "0.1.0"
+description = "Defect detection in FDM 3D printing with YOLOv8"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 # Settings for the Ruff linter and formatter.
 # Run with:  ruff check .   and   ruff format .
 
@@ -9,3 +25,7 @@ target-version = "py311"
 # E/W: style errors, F: real bugs (unused imports, undefined names),
 # I: sorted imports, UP: modern Python syntax, B: common pitfalls
 select = ["E", "W", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+# Our own modules: the package in src/ and the scripts that tests import.
+known-first-party = ["detection", "download_data"]
