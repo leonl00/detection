@@ -82,3 +82,25 @@ original split are therefore partly measured on scenes the model has seen.
 **Limitation:** phash only finds images that look alike as a whole. Two frames of
 the same printer filmed at different moments can be further apart than 14 bits
 and are then not grouped.
+
+## Clean split
+
+**Ratio:** 70 / 15 / 15 (train / valid / test), as in the specification. The test
+set grows from 46 to about 70 images, which makes per-class results less noisy.
+
+**Method:** every group of near-identical images goes as a whole into one split
+(`python -m detection.resplit`, seed 42). The split is stratified by class: each
+group gets the rarest class among its boxes as its main class, and the groups of
+each main class are divided in the target ratio on their own. Without this, a
+rare class such as `warping` could end up with almost no test examples by chance.
+
+**Result** (`data/dataset_clean/`, checked with `dataset_check` and `grouping`):
+
+| | train | valid | test |
+|---|---:|---:|---:|
+| Images | 329 | 71 | 70 |
+| `defect` boxes | 112 | 25 | 24 |
+| `spaghetti` boxes | 155 | 32 | 30 |
+| `under extrusion layer` boxes | 55 | 14 | 12 |
+| `warping` boxes | 24 | 6 | 6 |
+| Test images with a twin in train | | | 0 of 70 |
