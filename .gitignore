@@ -216,3 +216,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------
+# Project-specific rules (3D print defect detection)
+# ---------------------------------------------------------------
+
+# Datasets: never commit images or labels, only keep the empty folder
+data/*
+!data/.gitkeep
+
+# Model weights and training runs
+*.pt
+runs/
+
+# Generated reports, only keep the empty folder
+reports/*
+!reports/.gitkeep
+
+# PyCharm project settings are editor-specific
+.idea/
