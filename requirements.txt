@@ -11,6 +11,10 @@ matplotlib==3.11.2
 # Finding near-identical images (perceptual hashes)
 imagehash==4.3.2
 
+# Training and inference. PyTorch is installed by ultralytics and deliberately not
+# pinned here: Google Colab brings its own GPU build, which must not be replaced.
+ultralytics==8.4.173
+
 # Configuration and secrets
 pyyaml==6.0.3
 python-dotenv==1.2.4
