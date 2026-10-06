@@ -60,7 +60,9 @@ ruff format --check .
   warping). Stages 2 and 3 are redone; label quality checked by box sizes per
   class and sample images. The old data is in `data/old_3d-print-defect/`, the
   old run in `runs/baseline_old_dataset/`. Reasoning in `docs/decisions.md`.
-- Next: redo stage 4 on the new dataset (check the phash limit of 14 again,
-  then `grouping` and `resplit`), rebuild `data/data.zip`, train
-  `configs/baseline.yaml` again in Colab; then stage 6, `evaluate.py`. The config
-  for the clean split is added in stage 7.
+- Stage 4 redone on the new dataset: phash limit 14 checked again and kept.
+  Original split: 64 of 254 test images (25 %) have a twin in train. Clean split
+  (1837 / 394 / 393): 0 of 393. `data/data.zip` rebuilt with both datasets.
+- Next: user replaces `data.zip` in Drive and trains `configs/baseline.yaml`
+  again in Colab, then copies the run to `runs/baseline/`; then stage 6,
+  `evaluate.py`. The config for the clean split is added in stage 7.
