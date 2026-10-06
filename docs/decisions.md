@@ -47,3 +47,60 @@ above the threshold of 30 from the specification, and warping is a typical FDM
 defect. Limitation: the original test split contains only 4 warping boxes, so
 one hit more or less changes its recall by 25 percentage points. Results for
 this class are reported with this uncertainty, and comparisons use three seeds.
+
+## Near-duplicate images
+
+**Method:** every image gets a perceptual hash (`phash`, 64 bit). Two images count
+as twins when their hashes differ in at most **14 bits**, and twins of twins form
+one group (`python -m detection.grouping`, report in `reports/grouping_report.md`).
+
+**Why 14:** the distance from each image to its closest other image splits into
+two clear clusters: 80 images at 0 to 4 bits and almost all others at 16 bits or
+more. The few pairs in between were checked by eye:
+
+| Distance | Pairs checked | Same scene |
+|---:|---:|---:|
+| 4 to 12 | 6 | 6 |
+| 14 | 4 | 3 |
+| 16 | 8 (sample of 24) | 0 |
+
+A missed twin causes leakage, while a wrong match only makes one group larger,
+so the limit is set at the upper end, 14.
+
+**Result on the original Roboflow split:**
+
+| Question | Images |
+|---|---:|
+| Test images with a twin in train | 8 of 46 (17 %) |
+| Valid images with a twin in train | 15 of 93 (16 %) |
+| Test images with a twin in valid | 1 of 46 (2 %) |
+
+470 images form 420 groups; 43 groups contain more than one image (largest: 3),
+and 22 of them are spread over more than one split. The test metrics of the
+original split are therefore partly measured on scenes the model has seen.
+
+**Limitation:** phash only finds images that look alike as a whole. Two frames of
+the same printer filmed at different moments can be further apart than 14 bits
+and are then not grouped.
+
+## Clean split
+
+**Ratio:** 70 / 15 / 15 (train / valid / test), as in the specification. The test
+set grows from 46 to about 70 images, which makes per-class results less noisy.
+
+**Method:** every group of near-identical images goes as a whole into one split
+(`python -m detection.resplit`, seed 42). The split is stratified by class: each
+group gets the rarest class among its boxes as its main class, and the groups of
+each main class are divided in the target ratio on their own. Without this, a
+rare class such as `warping` could end up with almost no test examples by chance.
+
+**Result** (`data/dataset_clean/`, checked with `dataset_check` and `grouping`):
+
+| | train | valid | test |
+|---|---:|---:|---:|
+| Images | 329 | 71 | 70 |
+| `defect` boxes | 112 | 25 | 24 |
+| `spaghetti` boxes | 155 | 32 | 30 |
+| `under extrusion layer` boxes | 55 | 14 | 12 |
+| `warping` boxes | 24 | 6 | 6 |
+| Test images with a twin in train | | | 0 of 70 |
