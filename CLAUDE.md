@@ -53,6 +53,14 @@ ruff format --check .
   `MyDrive/detection/data.zip` (both datasets, built with
   `python -m zipfile -c data/data.zip data/dataset data/dataset_clean`),
   results go to `MyDrive/detection/runs/<name>/`.
-- Next: user runs `configs/baseline.yaml` (original split) in Colab and copies
-  the result to `runs/baseline/`; then stage 6, `evaluate.py`. The config for
-  the clean split is added in stage 7.
+- Dataset switched (2026-10-06): the first baseline run reached mAP50 0.056
+  because the labels of the first dataset were unusable (tiny boxes inside large
+  spaghetti clumps). New dataset: `3d-test/3d-print-error-box` version 26
+  (2624 images, no augmentation; classes layer shift, spaghetti, stringing,
+  warping). Stages 2 and 3 are redone; label quality checked by box sizes per
+  class and sample images. The old data is in `data/old_3d-print-defect/`, the
+  old run in `runs/baseline_old_dataset/`. Reasoning in `docs/decisions.md`.
+- Next: redo stage 4 on the new dataset (check the phash limit of 14 again,
+  then `grouping` and `resplit`), rebuild `data/data.zip`, train
+  `configs/baseline.yaml` again in Colab; then stage 6, `evaluate.py`. The config
+  for the clean split is added in stage 7.
