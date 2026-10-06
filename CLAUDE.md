@@ -40,8 +40,19 @@ ruff format --check .
 - Stage 2 (download): done. Dataset is in `data/dataset/`.
 - Stage 3 (dataset check): done. Report in `reports/dataset_report.md`,
   decisions on the classes in `docs/decisions.md`.
-- Open: delete the empty placeholders `src/detection/preprocessing.py` and
-  `tests/test_preprocessing.py`.
-- Next: stage 4, `grouping.py` (near-duplicates via `imagehash` phash) and
-  `resplit.py` (group-wise split 70/15/15 into `data/dataset_clean/`, using its
-  own fixed seed, separate from the training seed in the config).
+- Stage 4 (groups and resplit): done. `grouping.py` links images with a phash
+  distance of at most 14 bits (reasoning in `docs/decisions.md`): 8 of 46 test
+  images of the original split have a twin in train. `resplit.py` writes a
+  group-wise, class-stratified 70/15/15 split to `data/dataset_clean/` (its own
+  seed `DEFAULT_SEED`, separate from the training seed); 0 of 70 test images
+  there have a twin in train.
+- Stage 5 (training): code done, run pending. `train.py` writes
+  `runs/<name>/run_info.yaml` (config, seed, device, package versions) before
+  training; tested locally with a 1-epoch CPU smoke run. Training runs in
+  Colab via `notebooks/train_colab.ipynb`: data comes from
+  `MyDrive/detection/data.zip` (both datasets, built with
+  `python -m zipfile -c data/data.zip data/dataset data/dataset_clean`),
+  results go to `MyDrive/detection/runs/<name>/`.
+- Next: user runs `configs/baseline.yaml` (original split) in Colab and copies
+  the result to `runs/baseline/`; then stage 6, `evaluate.py`. The config for
+  the clean split is added in stage 7.
