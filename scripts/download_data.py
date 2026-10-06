@@ -17,10 +17,11 @@ from detection.dataset_check import check_dataset_structure, read_class_names
 # --- Dataset on Roboflow Universe --------------------------------------------
 # Copy these three values from "Download Dataset -> YOLOv8 -> show download code"
 # on the dataset page.
-# Dataset: https://universe.roboflow.com/shahrilspace/3d-print-defect
-WORKSPACE = "shahrilspace"
-PROJECT = "3d-print-defect"
-VERSION = 1
+# Dataset: https://universe.roboflow.com/3d-test/3d-print-error-box
+# Version 26 is the newest one without Roboflow augmentation (see docs/decisions.md).
+WORKSPACE = "3d-test"
+PROJECT = "3d-print-error-box"
+VERSION = 26
 
 # --- Local paths --------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
