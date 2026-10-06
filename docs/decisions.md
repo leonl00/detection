@@ -6,47 +6,90 @@ with `python -m detection.dataset_check` on the original Roboflow split.
 
 ## Dataset
 
-**Choice:** [3D Print Defect](https://universe.roboflow.com/shahrilspace/3d-print-defect),
-version 1, licence CC BY 4.0, exported in YOLOv8 format.
+**Choice:** [3d print error box](https://universe.roboflow.com/3d-test/3d-print-error-box),
+version 26, licence CC BY 4.0, exported in YOLOv8 format. It replaces a first
+dataset whose labels turned out to be unusable (see "Rejected first dataset").
+
+**Why version 26:** it is the newest version without Roboflow augmentation; the
+only preprocessing is auto-orient. Augmented versions contain two or three
+altered copies of each training image, which would inflate the image count and
+the duplicate search. Augmentation is done by Ultralytics during training instead.
 
 | | train | valid | test | total |
 |---|---:|---:|---:|---:|
-| Images | 331 | 93 | 46 | 470 |
-| Boxes | 352 | 97 | 46 | 495 |
+| Images | 2086 | 284 | 254 | 2624 |
+| Background images (no defect) | 671 | 75 | 70 | 816 |
+| Boxes | 2337 | 281 | 207 | 2825 |
 
-**Data quality:** no images without labels, no labels without images, no invalid
-label lines and no unreadable images. All images are 640x640 pixels.
+**Data quality:** no images without labels, no labels without images and no
+unreadable images. 11 label lines in 6 training files are polygons instead of
+boxes. Ultralytics turns polygon files into boxes on its own; in one file
+polygons and boxes are mixed, so 2 boxes of that image are converted wrongly.
+This affects 1 of 2624 images and is accepted.
 
-**Observation:** about one box per image, and 41 % of all boxes (205 of 495) cover
-less than 1 % of the image area. Small objects are the hardest case for YOLO, so
-the image size stays at 640 and is not reduced to save training time.
+**Background images are kept.** 31 % of the images show prints without a labelled
+defect. They teach the model what a good print looks like, which reduces false
+alarms.
 
-**Observation:** the file names (for example `beautiful_failures`, `failed-prints-2`,
-`666x500`) suggest photos collected from the web rather than video frames. The
-main leakage risk is therefore the same photo appearing more than once, which the
-duplicate search in stage 4 checks.
+**Image sizes vary** (697 different sizes in train, most often 1080x1440). YOLO
+scales every image to 640 pixels on its longest side, so small boxes in large
+images become smaller still.
+
+**Label check:** box sizes per class, as a share of the image area. The values
+fit the defects: spaghetti covers large areas, warping is a lifted corner or edge.
+Sample images with their boxes were also checked by eye.
+
+| Class | Boxes | Median area | Below 1 % | 10 % or more |
+|---|---:|---:|---:|---:|
+| `layer shift` | 501 | 2.6 % | 24 % | 16 % |
+| `spaghetti` | 735 | 16.8 % | 5 % | 61 % |
+| `stringing` | 893 | 3.6 % | 18 % | 25 % |
+| `warping` | 696 | 1.1 % | 48 % | 4 % |
 
 ## Classes
 
 | Class ID | Name | Meaning | Boxes (total / test) |
 |---:|---|---|---:|
-| 0 | `defect` | Total failure: the whole part is unusable | 161 / 17 |
-| 1 | `spaghetti` | Tangled filament above the part | 217 / 19 |
-| 2 | `under extrusion layer` | Gaps and thin layers from too little material | 81 / 6 |
-| 3 | `warping` | Corners bent upwards, part lifting off the bed | 36 / 4 |
+| 0 | `layer shift` | Layers offset sideways, the part looks cut and shifted | 501 / 37 |
+| 1 | `spaghetti` | Tangled filament, the print has come loose | 735 / 54 |
+| 2 | `stringing` | Thin threads between parts of the print | 893 / 47 |
+| 3 | `warping` | Corners bent upwards, part lifting off the bed | 696 / 69 |
 
-**`defect` is kept as its own class** with the meaning "total failure of the
-whole part", while the other three classes describe local defect patterns. The
-name in the data stays unchanged so that the original and the clean split use
-exactly the same classes. Expected risk: confusion between `defect` and
-`spaghetti`, because a spaghetti print is often a total failure as well. The
-confusion matrix in stage 6 checks this.
+All four classes are kept unchanged. The smallest class has 501 boxes, far above
+the threshold of 30 from the specification, so no class has to be merged or
+removed. Expected difficulty: `warping`, because half of its boxes cover less
+than 1 % of the image.
 
-**`warping` is kept** although it is the smallest class. With 36 boxes it is
-above the threshold of 30 from the specification, and warping is a typical FDM
-defect. Limitation: the original test split contains only 4 warping boxes, so
-one hit more or less changes its recall by 25 percentage points. Results for
-this class are reported with this uncertainty, and comparisons use three seeds.
+## Rejected first dataset
+
+The project started with [3D Print Defect](https://universe.roboflow.com/shahrilspace/3d-print-defect)
+(version 1, 470 images, classes `defect`, `spaghetti`, `under extrusion layer`,
+`warping`). Its data passed all formal checks, but the first training
+(`configs/baseline.yaml`, yolov8n, 50 epochs, seed 42, Tesla T4) reached only:
+
+| | Best epoch (32) | Last epoch (50) |
+|---|---:|---:|
+| mAP50 | 0.056 | 0.006 |
+| Recall | 0.03 | 0.03 |
+
+The cause was the labels, not the training. Spaghetti clumps that fill half of
+the image were marked with a tiny box at an arbitrary spot inside them:
+
+| Class | Median box area | Boxes below 1 % of the image |
+|---|---:|---:|
+| `spaghetti` | 0.8 % | 64 % |
+| `defect` | 1.6 % | 25 % |
+
+With such labels the model cannot learn where a box belongs, and no training
+setting fixes that. In addition, `defect` was also used for small surface flaws
+such as zits, not only for total failures. Since both the original and the clean
+split would end near zero, the split comparison, the core result of the project,
+could not be shown with this dataset. The lesson: formal label checks (format,
+value range) are not enough; box sizes per class and a look at sample images
+belong to every dataset check.
+
+The duplicate search on this dataset found that 8 of 46 test images (17 %) had a
+near twin in train; this is where the method below was developed.
 
 ## Near-duplicate images
 
@@ -54,9 +97,9 @@ this class are reported with this uncertainty, and comparisons use three seeds.
 as twins when their hashes differ in at most **14 bits**, and twins of twins form
 one group (`python -m detection.grouping`, report in `reports/grouping_report.md`).
 
-**Why 14:** the distance from each image to its closest other image splits into
-two clear clusters: 80 images at 0 to 4 bits and almost all others at 16 bits or
-more. The few pairs in between were checked by eye:
+**Why 14** (measured on the first dataset): the distance from each image to its
+closest other image split into two clear clusters: 80 images at 0 to 4 bits and
+almost all others at 16 bits or more. The few pairs in between were checked by eye:
 
 | Distance | Pairs checked | Same scene |
 |---:|---:|---:|
@@ -67,17 +110,8 @@ more. The few pairs in between were checked by eye:
 A missed twin causes leakage, while a wrong match only makes one group larger,
 so the limit is set at the upper end, 14.
 
-**Result on the original Roboflow split:**
-
-| Question | Images |
-|---|---:|
-| Test images with a twin in train | 8 of 46 (17 %) |
-| Valid images with a twin in train | 15 of 93 (16 %) |
-| Test images with a twin in valid | 1 of 46 (2 %) |
-
-470 images form 420 groups; 43 groups contain more than one image (largest: 3),
-and 22 of them are spread over more than one split. The test metrics of the
-original split are therefore partly measured on scenes the model has seen.
+**Open:** the limit has to be checked again on the new dataset, and the results
+of the duplicate search are measured anew.
 
 **Limitation:** phash only finds images that look alike as a whole. Two frames of
 the same printer filmed at different moments can be further apart than 14 bits
@@ -85,22 +119,12 @@ and are then not grouped.
 
 ## Clean split
 
-**Ratio:** 70 / 15 / 15 (train / valid / test), as in the specification. The test
-set grows from 46 to about 70 images, which makes per-class results less noisy.
+**Ratio:** 70 / 15 / 15 (train / valid / test), as in the specification.
 
 **Method:** every group of near-identical images goes as a whole into one split
 (`python -m detection.resplit`, seed 42). The split is stratified by class: each
 group gets the rarest class among its boxes as its main class, and the groups of
 each main class are divided in the target ratio on their own. Without this, a
-rare class such as `warping` could end up with almost no test examples by chance.
+rare class could end up with almost no test examples by chance.
 
-**Result** (`data/dataset_clean/`, checked with `dataset_check` and `grouping`):
-
-| | train | valid | test |
-|---|---:|---:|---:|
-| Images | 329 | 71 | 70 |
-| `defect` boxes | 112 | 25 | 24 |
-| `spaghetti` boxes | 155 | 32 | 30 |
-| `under extrusion layer` boxes | 55 | 14 | 12 |
-| `warping` boxes | 24 | 6 | 6 |
-| Test images with a twin in train | | | 0 of 70 |
+**Open:** the clean split is created anew for the new dataset.
