@@ -110,8 +110,43 @@ almost all others at 16 bits or more. The few pairs in between were checked by e
 A missed twin causes leakage, while a wrong match only makes one group larger,
 so the limit is set at the upper end, 14.
 
-**Open:** the limit has to be checked again on the new dataset, and the results
-of the duplicate search are measured anew.
+**Check on the current dataset:** here the distances are less clearly separated.
+Many images come from the same fixed camera at the same printer, often with
+different prints on the bed. Pairs were checked by eye again (6 per distance):
+
+| Distance | Pairs at this distance | What the pairs show |
+|---:|---:|---|
+| 10 | 68 | almost all the same camera setup, partly the same print |
+| 12 | 108 | almost all the same camera setup |
+| 14 | 249 | about half the same camera setup |
+| 16 | 879 | mostly unrelated images |
+
+Because twins of twins form one group, a higher limit can chain unrelated images
+into large groups. This was measured as well:
+
+| Limit | Groups | Largest group | Images in groups of 2 or more |
+|---:|---:|---:|---:|
+| 12 | 2356 | 59 | 424 |
+| 14 | 2236 | 75 | 611 |
+| 16 | 1637 | 143 | 1356 |
+
+The limit of **14 is kept**. The largest group (75 images) was checked: 15 of 16
+sample images show the same printer and camera, so the group is real and small
+enough (3 % of the data) to be put into one split as a whole. At 16, unrelated
+images would be chained together.
+
+**Result on the original Roboflow split:**
+
+| Question | Images |
+|---|---:|
+| Test images with a twin in train | 64 of 254 (25 %) |
+| Valid images with a twin in train | 67 of 284 (24 %) |
+| Test images with a twin in valid | 19 of 254 (7 %) |
+
+2624 images form 2236 groups; 223 groups contain more than one image, and 104
+of them are spread over more than one split. A quarter of the original test set
+shows scenes that are also in train, so its metrics are expected to be too
+optimistic.
 
 **Limitation:** phash only finds images that look alike as a whole. Two frames of
 the same printer filmed at different moments can be further apart than 14 bits
@@ -127,4 +162,17 @@ group gets the rarest class among its boxes as its main class, and the groups of
 each main class are divided in the target ratio on their own. Without this, a
 rare class could end up with almost no test examples by chance.
 
-**Open:** the clean split is created anew for the new dataset.
+**Result** (`data/dataset_clean/`, checked with `dataset_check` and `grouping`):
+
+| | train | valid | test |
+|---|---:|---:|---:|
+| Images | 1837 | 394 | 393 |
+| Background images | 602 | 107 | 107 |
+| `layer shift` boxes | 346 | 75 | 80 |
+| `spaghetti` boxes | 528 | 104 | 103 |
+| `stringing` boxes | 642 | 129 | 122 |
+| `warping` boxes | 461 | 123 | 112 |
+| Test images with a twin in train | | | 0 of 393 |
+
+The clean test set is also larger than the original one (393 instead of 254
+images), because Roboflow used about 80 / 11 / 10.
