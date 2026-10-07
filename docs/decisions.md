@@ -176,3 +176,44 @@ rare class could end up with almost no test examples by chance.
 
 The clean test set is also larger than the original one (393 instead of 254
 images), because Roboflow used about 80 / 11 / 10.
+
+## Evaluation
+
+**Method:** `python -m detection.evaluate` runs the Ultralytics validation on the
+test split (mAP50, mAP50-95, precision and recall per class, confusion matrix,
+precision-recall curve) and adds an error analysis per image. A prediction is a
+hit when it has the same class as a true box and overlaps it by IoU >= 0.5.
+Leftover true boxes are missed defects, leftover predictions are false alarms.
+The 20 images with the most errors are drawn; on a tie, more missed defects rank
+first, because a missed defect costs a failed print while a false alarm only
+costs a look at the printer. The error analysis uses the Ultralytics default
+confidence of 0.25; the threshold for the application is chosen in stage 8.
+
+**First result:** baseline model (`runs/baseline`, trained on the original
+split), evaluated on the original test split (254 images, 207 boxes):
+
+| Class | Boxes | Precision | Recall | mAP50 | mAP50-95 |
+|---|---:|---:|---:|---:|---:|
+| **all** | 207 | 0.623 | 0.577 | 0.601 | 0.335 |
+| `layer shift` | 37 | 0.440 | 0.243 | 0.245 | 0.103 |
+| `spaghetti` | 54 | 0.759 | 0.814 | 0.848 | 0.503 |
+| `stringing` | 47 | 0.637 | 0.787 | 0.791 | 0.522 |
+| `warping` | 69 | 0.657 | 0.464 | 0.520 | 0.212 |
+
+A quarter of these test images have a near twin in train, so the numbers are
+expected to be too optimistic; the comparison with the clean split follows in
+stage 7. `layer shift` is clearly the weakest class: only 24 % of its boxes are
+found.
+
+**Observations from the 20 worst images:**
+
+- Several "worst" images are disagreements about box boundaries, not missed
+  defects: the label has one large box around a spaghetti clump or a group of
+  strings, the model finds the same defect as several smaller boxes. This counts
+  as one missed defect plus several false alarms, although the defect is found.
+- Warping boxes along a lifted edge often overlap the label only partly.
+- Real false alarms also occur, for example boxes on a keyboard next to the print.
+
+The box-level metrics therefore understate how often the model notices that a
+print has a problem. For the application, which only has to raise an alarm,
+an image-level view (is there a defect in the image or not?) is checked in stage 8.
