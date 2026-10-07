@@ -67,5 +67,9 @@ ruff format --check .
   Tesla T4). Validation: mAP50 0.543, mAP50-95 0.296, P 0.65, R 0.50; still
   improving at epoch 50. Weakest class `stringing` (often taken for spaghetti).
   These are validation numbers of the leaky original split, not final results.
-- Next: stage 6, `evaluate.py` on the test split. The config for the clean
-  split is added in stage 7.
+- Stage 6 done: `evaluate.py` writes metrics, plots and the 20 worst images to
+  `reports/<run>/`. Baseline on the original test split: mAP50 0.601,
+  mAP50-95 0.335; `layer shift` weakest (recall 0.24). Many "worst" images are
+  box-boundary disagreements, see `docs/decisions.md`.
+- Next: stage 7, add `configs/baseline_clean.yaml`, train it in Colab and
+  compare original vs clean split (three seeds where time allows).
