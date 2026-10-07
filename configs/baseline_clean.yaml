@@ -1,0 +1,10 @@
+# Same experiment as baseline.yaml, but trained on the clean, group-wise split
+# (data/dataset_clean/, created by detection.resplit). Only name and data_yaml
+# differ, so any difference in the results comes from the split alone.
+
+name: baseline_clean
+data_yaml: data/dataset_clean/data.yaml
+model: yolov8n.pt
+epochs: 50
+imgsz: 640
+seed: 42
