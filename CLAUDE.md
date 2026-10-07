@@ -63,6 +63,13 @@ ruff format --check .
 - Stage 4 redone on the new dataset: phash limit 14 checked again and kept.
   Original split: 64 of 254 test images (25 %) have a twin in train. Clean split
   (1837 / 394 / 393): 0 of 393. `data/data.zip` rebuilt with both datasets.
-- Next: user replaces `data.zip` in Drive and trains `configs/baseline.yaml`
-  again in Colab, then copies the run to `runs/baseline/`; then stage 6,
-  `evaluate.py`. The config for the clean split is added in stage 7.
+- Stage 5 done: `runs/baseline/` (original split, yolov8n, 50 epochs, seed 42,
+  Tesla T4). Validation: mAP50 0.543, mAP50-95 0.296, P 0.65, R 0.50; still
+  improving at epoch 50. Weakest class `stringing` (often taken for spaghetti).
+  These are validation numbers of the leaky original split, not final results.
+- Stage 6 done: `evaluate.py` writes metrics, plots and the 20 worst images to
+  `reports/<run>/`. Baseline on the original test split: mAP50 0.601,
+  mAP50-95 0.335; `layer shift` weakest (recall 0.24). Many "worst" images are
+  box-boundary disagreements, see `docs/decisions.md`.
+- Next: stage 7, add `configs/baseline_clean.yaml`, train it in Colab and
+  compare original vs clean split (three seeds where time allows).

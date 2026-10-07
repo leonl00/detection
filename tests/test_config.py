@@ -80,6 +80,21 @@ def test_baseline_config_in_repository_is_valid() -> None:
     assert config.name == "baseline"
 
 
+def test_clean_config_differs_from_baseline_only_in_dataset() -> None:
+    # The split comparison is only fair if both runs use the same settings.
+    baseline = load_config(PROJECT_ROOT / "configs" / "baseline.yaml")
+    clean = load_config(PROJECT_ROOT / "configs" / "baseline_clean.yaml")
+
+    assert clean.name == "baseline_clean"
+    assert clean.data_yaml == Path("data/dataset_clean/data.yaml")
+    assert (clean.model, clean.epochs, clean.imgsz, clean.seed) == (
+        baseline.model,
+        baseline.epochs,
+        baseline.imgsz,
+        baseline.seed,
+    )
+
+
 # --- Error cases: the file itself ------------------------------------------
 
 
